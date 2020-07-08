@@ -1,13 +1,10 @@
 package net.schlaubi.ultimatediscord.spigot;
 
-import net.dv8tion.jda.core.AccountType;
-import net.dv8tion.jda.core.JDA;
-import net.dv8tion.jda.core.JDABuilder;
-import net.dv8tion.jda.core.entities.Game;
-import net.dv8tion.jda.core.exceptions.RateLimitedException;
+import net.dv8tion.jda.api.JDA;
+import net.dv8tion.jda.api.JDABuilder;
+import net.dv8tion.jda.api.entities.Activity;
 import net.milkbowl.vault.permission.Permission;
 import net.schlaubi.ultimatediscord.util.MySQL;
-import org.bukkit.Bukkit;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.RegisteredServiceProvider;
@@ -42,19 +39,22 @@ public class Main extends JavaPlugin {
 
     private void startBot() {
         FileConfiguration cfg = getConfiguration();
-        JDABuilder bot = new JDABuilder(AccountType.BOT);
-        bot.setAutoReconnect(true);
-        bot.setToken(cfg.getString("Discord.token"));
-        bot.setGame(Game.playing(cfg.getString("Discord.game")));
-        bot.addEventListener(new MessageListener());
-        try {
-            jda = bot.buildBlocking();
-        } catch (LoginException | InterruptedException e) {
-            Bukkit.getConsoleSender().sendMessage("§4§l[UltimateDiscord] Invalid discord token");
+
+        try
+        {
+            JDA jda = JDABuilder.createDefault(cfg.getString("Discord.token")) // The token of the account that is logging in.
+                    .addEventListeners(new MessageListener())   // An instance of a class that will handle events.
+                    .setAutoReconnect(true)
+                    .setActivity(Activity.watching(cfg.getString("Discord.game")))
+                    .build();
+            jda.awaitReady(); // Blocking guarantees that JDA will be completely loaded.
+            System.out.println("Finished Building JDA!");
+        }
+        catch (LoginException | InterruptedException e)
+        {
+            getLogger().severe("§4§l[UltimateDiscord] Invalid discord token");
             e.printStackTrace();
         }
-
-
     }
 
     @Override

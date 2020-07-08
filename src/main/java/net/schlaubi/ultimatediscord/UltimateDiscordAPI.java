@@ -1,23 +1,22 @@
 package net.schlaubi.ultimatediscord;
 
-import net.dv8tion.jda.core.JDA;
+import net.dv8tion.jda.api.JDA;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
-import net.schlaubi.ultimatediscord.bungee.Main;
 import net.schlaubi.ultimatediscord.util.MySQL;
 import org.bukkit.entity.Player;
 
 public class UltimateDiscordAPI {
 
     public static boolean isVerified(String discordid){
-        return MySQL.userExists(discordid);
+        return MySQL.isUserLinked(discordid);
     }
 
     public static boolean isVerified(Player player){
-        return MySQL.userExists(player);
+        return MySQL.isUserLinked(player);
     }
 
     public static boolean isVerified(ProxiedPlayer proxiedPlayer){
-        return MySQL.userExists(proxiedPlayer);
+        return MySQL.isUserLinked(proxiedPlayer);
     }
 
     public static String getUserName(String discordid){
@@ -32,9 +31,6 @@ public class UltimateDiscordAPI {
         return MySQL.getValue(proxiedPlayer, "discordid");
     }
 
-    public static JDA getBungeeCordJDA(){
-        return Main.jda;
-    }
     public static JDA getSpigotJDA(){
         return net.schlaubi.ultimatediscord.spigot.Main.jda;
     }

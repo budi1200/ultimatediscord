@@ -20,6 +20,7 @@ Roles:
     premium: 1
 Messages:
   verify: '&7[&aDiscord&7]&r Please send this message to our bot "!verify %code%"'
+  unverify: '&7[&aDiscord&7]&r Please send this message to our bot "!unlink %code%"'
   running: '&7[&aDiscord&7]&c There is already a verfication request in our system for you your code was %code%'
   verified: '&7[&aDiscord&7]&c You are already verified use /discord unlink to unlink your account'
   notverified: '&7[&aDiscord&7]&c You are not verified use /discord verify to verify your account'
@@ -27,6 +28,7 @@ Messages:
   ts3join: 'Hey %user%, you are not verified yet if you want to be use /discord verify ingame'
   invalidcode: 'Your code was invalid!'
   success: 'Successfully linked with **%discord%**'
+  successUnlink: 'Successfully unlinked with **%discord%**'
   updated: '&7[&aDiscord&7]&c Successfully updated discord ranks'
   help: 'Commands: %nl /discord verify %nl /discord unlink %nl /discord update'
 

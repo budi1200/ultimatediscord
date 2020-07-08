@@ -73,7 +73,7 @@ public class MySQL {
             if (connection.isClosed()) {
                 connect();
             }
-            PreparedStatement ps = connection.prepareStatement("CREATE TABLE IF NOT EXISTS ultimatediscord( `id` INT NOT NULL AUTO_INCREMENT , `uuid` TEXT NOT NULL , `discordid` TEXT NOT NULL , PRIMARY KEY (`id`)) ENGINE = InnoDB;");
+            PreparedStatement ps = connection.prepareStatement("CREATE TABLE IF NOT EXISTS ultimatediscord( `id` INT NOT NULL AUTO_INCREMENT , `uuid` TEXT NOT NULL , `discordid` TEXT, `previouslyLinked` INT NOT NULL, PRIMARY KEY (`id`)) ENGINE = InnoDB;");
             ps.execute();
         }
         catch (SQLException e)
@@ -82,7 +82,30 @@ public class MySQL {
         }
     }
 
-    public static boolean userExists(Player player)
+    public static boolean isUserLinked(Player player)
+    {
+        try
+        {
+            if (connection.isClosed()) {
+                connect();
+            }
+            PreparedStatement ps = connection.prepareStatement("SELECT * FROM ultimatediscord WHERE uuid =?");
+            ps.setString(1, player.getName());
+            ResultSet rs = ps.executeQuery();
+            if(rs.next()){
+                return (!rs.getString("discordid").equals("null"));
+            }else{
+                return false;
+            }
+        }
+        catch (SQLException e)
+        {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    public static boolean isUserLinked(ProxiedPlayer player)
     {
         try
         {
@@ -101,26 +124,7 @@ public class MySQL {
         return false;
     }
 
-    public static boolean userExists(ProxiedPlayer player)
-    {
-        try
-        {
-            if (connection.isClosed()) {
-                connect();
-            }
-            PreparedStatement ps = connection.prepareStatement("SELECT * FROM ultimatediscord WHERE uuid =?");
-            ps.setString(1, player.getName());
-            ResultSet rs = ps.executeQuery();
-            return rs.next();
-        }
-        catch (SQLException e)
-        {
-            e.printStackTrace();
-        }
-        return false;
-    }
-
-    public static boolean userExists(String id)
+    public static boolean isUserLinked(String id)
     {
         try
         {
@@ -148,10 +152,21 @@ public class MySQL {
             if (connection.isClosed()) {
                 connect();
             }
-            PreparedStatement ps = connection.prepareStatement("INSERT INTO ultimatediscord(`uuid`,`discordid`) VALUES (?, ?)");
-            ps.setString(1, player);
-            ps.setString(2, identity);
-            ps.execute();
+
+            PreparedStatement ps1 = connection.prepareStatement("SELECT * FROM ultimatediscord WHERE `uuid`=?");
+            ps1.setString(1, player);
+            ResultSet rs = ps1.executeQuery();
+
+            if(rs.next()){
+                PreparedStatement ps = connection.prepareStatement("UPDATE ultimatediscord SET `discordid`=?, `previouslyLinked`=1");
+                ps.setString(1, identity);
+                ps.execute();
+            }else{
+                PreparedStatement ps = connection.prepareStatement("INSERT INTO ultimatediscord(`uuid`,`discordid`, `previouslyLinked`) VALUES (?, ?, 1)");
+                ps.setString(1, player);
+                ps.setString(2, identity);
+                ps.execute();
+            }
         }
         catch (SQLException e)
         {
@@ -222,31 +237,15 @@ public class MySQL {
         }
         return null;
     }
-    public static void deleteUser(Player player)
-    {
-        try
-        {
-            if (connection.isClosed()) {
-                connect();
-            }
-            PreparedStatement ps = connection.prepareStatement("DELETE FROM ultimatediscord WHERE uuid=?");
-            ps.setString(1, player.getName());
-            ps.execute();
-        }
-        catch (SQLException e)
-        {
-            e.printStackTrace();
-        }
-    }
 
-    public static void deleteUser(ProxiedPlayer player)
+    public static void unlinkUser(Player player)
     {
         try
         {
             if (connection.isClosed()) {
                 connect();
             }
-            PreparedStatement ps = connection.prepareStatement("DELETE FROM ultimatediscord WHERE uuid=?");
+            PreparedStatement ps = connection.prepareStatement("UPDATE ultimatediscord SET `discordid`='null', `previouslyLinked`=1 WHERE uuid=?");
             ps.setString(1, player.getName());
             ps.execute();
         }

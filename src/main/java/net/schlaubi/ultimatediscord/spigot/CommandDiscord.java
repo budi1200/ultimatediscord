@@ -1,8 +1,8 @@
 package net.schlaubi.ultimatediscord.spigot;
 
-import net.dv8tion.jda.core.entities.Member;
-import net.dv8tion.jda.core.entities.Role;
-import net.dv8tion.jda.core.managers.GuildController;
+import net.dv8tion.jda.api.entities.Guild;
+import net.dv8tion.jda.api.entities.Member;
+import net.dv8tion.jda.api.entities.Role;
 import net.schlaubi.ultimatediscord.util.MySQL;
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
@@ -12,8 +12,6 @@ import org.bukkit.command.TabExecutor;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 
-import java.io.File;
-import java.io.IOException;
 import java.util.*;
 
 public class CommandDiscord implements CommandExecutor, TabExecutor {
@@ -21,7 +19,7 @@ public class CommandDiscord implements CommandExecutor, TabExecutor {
     public static HashMap<String, String> users = new HashMap<>();
 
     private String generateString(){
-        String CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567980";
+        String CHARS = "abcdefghijklmnopqrstuvwxyz1234567980";
         StringBuilder random = new StringBuilder();
         Random rnd = new Random();
         while(random.length() < 5){
@@ -37,56 +35,47 @@ public class CommandDiscord implements CommandExecutor, TabExecutor {
             FileConfiguration cfg = Main.getConfiguration();
             Player player = (Player) sender;
             if(args.length > 0) {
+                    // Reload command handler
                 if (args[0].equalsIgnoreCase("reload")) {
                     if (player.hasPermission("discord.reload")) {
                         player.sendMessage("§7[§Discord§7]§a Settings reloaded");
-                        try {
-                            cfg.save(new File("plugins/TeamspeakVerifyer", "config.yml"));
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }
                     }
+                    // Verify command handler
                 } else if (args[0].equalsIgnoreCase("verify")) {
                     if (users.containsKey(player.getName())) {
                         player.sendMessage(cfg.getString("Messages.running").replace("&", "§").replace("%code%", users.get(player.getName())));
-                    } else if (MySQL.userExists(player)) {
+                    } else if (MySQL.isUserLinked(player)) {
                         player.sendMessage(cfg.getString("Messages.verified").replace("&", "§"));
                     } else {
                         users.put(player.getName(), generateString());
                         player.sendMessage(cfg.getString("Messages.verify").replace("&", "§").replace("%code%", users.get(player.getName())));
-                        Bukkit.getScheduler().runTaskLater(Main.instance, new Runnable() {
-                            @Override
-                            public void run() {
-                                if (users.containsKey(player.getName())) {
-                                    users.remove(player.getName());
-                                }
+                        Bukkit.getScheduler().runTaskLater(Main.instance, () -> {
+                            if (users.containsKey(player.getName())) {
+                                users.remove(player.getName());
                             }
                         }, 60 * 1000);
                     }
+                    // Unlink command handler
                 } else if (args[0].equalsIgnoreCase("unlink")) {
-                    if (!MySQL.userExists(player)) {
+                    if (!MySQL.isUserLinked(player)) {
                         player.sendMessage(cfg.getString("Messages.notverified").replace("&", "§"));
                     } else {
-                        GuildController guild = new GuildController(Main.jda.getGuilds().get(0));
-                        Member member = guild.getGuild().getMember(Main.jda.getUserById(MySQL.getValue(player, "discordid")));
-                        guild.removeRolesFromMember(member, guild.getGuild().getRoleById(cfg.getString("Roles.defaultrole"))).queue();
-                        new Timer().schedule(new TimerTask() {
-                            @Override
-                            public void run() {
-                                guild.removeRolesFromMember(member, guild.getGuild().getRoleById(cfg.getString("Roles.group." + Main.getPermissions().getPrimaryGroup(player)))).queue();
+                        users.put(player.getName(), generateString());
+                        player.sendMessage(cfg.getString("Messages.unverify").replace("&", "§").replace("%code%", users.get(player.getName())));
+                        Bukkit.getScheduler().runTaskLater(Main.instance, () -> {
+                            if (users.containsKey(player.getName())) {
+                                users.remove(player.getName());
                             }
-                        }, 1000);
-                        MySQL.deleteUser(player);
-                        player.sendMessage(cfg.getString("Messages.unlinked").replace("&", "§"));
+                        }, 60 * 1000);
                     }
                 } else if(args[0].equalsIgnoreCase("update")){
-                    if (!MySQL.userExists(player)) {
+                    if (!MySQL.isUserLinked(player)) {
                         player.sendMessage(cfg.getString("Messages.notverified").replace("&", "§"));
                     } else {
-                        GuildController guild = new GuildController(Main.jda.getGuilds().get(0));
-                        Member member = guild.getGuild().getMemberById(MySQL.getValue(player, "discordid"));
-                        Role role = guild.getGuild().getRoleById(cfg.getString("Roles.group." + Main.getPermissions().getPrimaryGroup(player)));
-                        guild.addRolesToMember(member, role).queue();
+                        Guild guild = Main.jda.getGuilds().get(0);
+                        Member member = guild.getMemberById(MySQL.getValue(player, "discordid"));
+                        Role role = guild.getRoleById(cfg.getString("Roles.group." + Main.getPermissions().getPrimaryGroup(player)));
+                        guild.addRoleToMember(member, role).queue();
                         player.sendMessage(cfg.getString("Messages.updated").replace("&", "§"));
                     }
                 }
