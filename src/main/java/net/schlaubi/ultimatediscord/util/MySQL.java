@@ -16,29 +16,7 @@ import java.sql.*;
 
 public class MySQL {
 
-    //private static Connection connection;
-    private static GenericObjectPool gPool = null;
-
-    /*public static void connect(){
-        FileConfiguration cfg = Main.getConfiguration();
-        String host = cfg.getString("MySQL.host");
-        Integer port = cfg.getInt("MySQL.port");
-        String user = cfg.getString("MySQL.user");
-        String database = cfg.getString("MySQL.database");
-        String password = cfg.getString("MySQL.password");
-
-
-        try
-        {
-            connection = DriverManager.getConnection("jdbc:mysql://" + host + ":" + port + "/" + database + "?autoReconnect=true&autoReconnectForPools=true&interactiveClient=true&characterEncoding=UTF-8", user, password);
-            Bukkit.getConsoleSender().sendMessage("§a§l[UltimateDiscord]MySQL connection success");
-        }
-        catch (SQLException e)
-        {
-            Bukkit.getConsoleSender().sendMessage("§4§l[UltimateDiscord]MySQL connection failed");
-            e.printStackTrace();
-        }
-    }*/
+    // TODO: Everything probably could be optimized //
 
     @SuppressWarnings("unused")
     public static DataSource setUpPool() throws Exception {
@@ -54,7 +32,8 @@ public class MySQL {
         String dbUrl = "jdbc:mysql://" + host + ":" + port + "/" + database + "?autoReconnect=true&autoReconnectForPools=true&interactiveClient=true&characterEncoding=UTF-8";
 
         // Creates an Instance of GenericObjectPool That Holds Our Pool of Connections Object!
-        gPool = new GenericObjectPool();
+        //private static Connection connection;
+        GenericObjectPool gPool = new GenericObjectPool();
         gPool.setMaxActive(5);
 
         // Creates a ConnectionFactory Object Which Will Be Use by the Pool to Create the Connection Object!
@@ -65,24 +44,6 @@ public class MySQL {
         return new PoolingDataSource(gPool);
     }
 
-    public GenericObjectPool getConnectionPool() {
-        return gPool;
-    }
-
-    /*private static boolean isConnected(){
-        return connection != null;
-    }
-
-    public static void disconnect(){
-        if(!isConnected()){
-            try {
-                connection.close();
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
-        }
-    }*/
-
     public static void createDatabase()
     {
         Connection connObj = null;
@@ -92,7 +53,6 @@ public class MySQL {
             DataSource dataSource = setUpPool();
 
             // Performing Database Operation!
-            System.out.println("\n=====Making A New Connection Object For Db Transaction=====\n");
             connObj = dataSource.getConnection();
 
             ps = connObj.prepareStatement("CREATE TABLE IF NOT EXISTS ultimatediscord( `id` INT NOT NULL AUTO_INCREMENT , `uuid` TEXT NOT NULL , `discordid` TEXT, `previouslyLinked` INT NOT NULL, PRIMARY KEY (`id`)) ENGINE = InnoDB;");
@@ -121,12 +81,10 @@ public class MySQL {
         PreparedStatement ps = null;
         ResultSet rs = null;
         boolean returnVal = false;
-
         try {
             DataSource dataSource = setUpPool();
 
             // Performing Database Operation!
-            System.out.println("\n=====Making A New Connection Object For Db Transaction=====\n");
             connObj = dataSource.getConnection();
 
             ps = connObj.prepareStatement("SELECT * FROM ultimatediscord WHERE uuid =?");
@@ -138,22 +96,7 @@ public class MySQL {
         } catch(Exception sqlException) {
             sqlException.printStackTrace();
         } finally {
-            try {
-                // Closing ResultSet Object
-                if(rs != null) {
-                    rs.close();
-                }
-                // Closing PreparedStatement Object
-                if(ps != null) {
-                    ps.close();
-                }
-                // Closing Connection Object
-                if(connObj != null) {
-                    connObj.close();
-                }
-            } catch(Exception sqlException) {
-                sqlException.printStackTrace();
-            }
+            cleanUp(connObj, ps, rs);
         }
         return returnVal;
     }
@@ -168,7 +111,6 @@ public class MySQL {
             DataSource dataSource = setUpPool();
 
             // Performing Database Operation!
-            System.out.println("\n=====Making A New Connection Object For Db Transaction=====\n");
             connObj = dataSource.getConnection();
 
             ps = connObj.prepareStatement("SELECT * FROM ultimatediscord WHERE uuid =?");
@@ -183,22 +125,7 @@ public class MySQL {
         } catch(Exception sqlException) {
             sqlException.printStackTrace();
         } finally {
-            try {
-                // Closing ResultSet Object
-                if(rs != null) {
-                    rs.close();
-                }
-                // Closing PreparedStatement Object
-                if(ps != null) {
-                    ps.close();
-                }
-                // Closing Connection Object
-                if(connObj != null) {
-                    connObj.close();
-                }
-            } catch(Exception sqlException) {
-                sqlException.printStackTrace();
-            }
+            cleanUp(connObj, ps, rs);
         }
         return returnVal;
     }
@@ -212,7 +139,6 @@ public class MySQL {
             DataSource dataSource = setUpPool();
 
             // Performing Database Operation!
-            System.out.println("\n=====Making A New Connection Object For Db Transaction=====\n");
             connObj = dataSource.getConnection();
 
             ps = connObj.prepareStatement("INSERT INTO ultimatediscord(`uuid`,`discordid`, `previouslyLinked`) VALUES (?, ?, 1)");
@@ -247,7 +173,6 @@ public class MySQL {
             DataSource dataSource = setUpPool();
 
             // Performing Database Operation!
-            System.out.println("\n=====Making A New Connection Object For Db Transaction=====\n");
             connObj = dataSource.getConnection();
 
             ps = connObj.prepareStatement("UPDATE ultimatediscord SET `discordid`=?, `previouslyLinked`=1");
@@ -284,7 +209,6 @@ public class MySQL {
             DataSource dataSource = setUpPool();
 
             // Performing Database Operation!
-            System.out.println("\n=====Making A New Connection Object For Db Transaction=====\n");
             connObj = dataSource.getConnection();
 
             ps = connObj.prepareStatement("SELECT * FROM ultimatediscord WHERE uuid = ?");
@@ -296,22 +220,7 @@ public class MySQL {
         } catch(Exception sqlException) {
             sqlException.printStackTrace();
         } finally {
-            try {
-                // Closing ResultSet Object
-                if(rs != null) {
-                    rs.close();
-                }
-                // Closing PreparedStatement Object
-                if(ps != null) {
-                    ps.close();
-                }
-                // Closing Connection Object
-                if(connObj != null) {
-                    connObj.close();
-                }
-            } catch(Exception sqlException) {
-                sqlException.printStackTrace();
-            }
+            cleanUp(connObj, ps, rs);
         }
         return returnVal;
     }
@@ -327,7 +236,6 @@ public class MySQL {
             DataSource dataSource = setUpPool();
 
             // Performing Database Operation!
-            System.out.println("\n=====Making A New Connection Object For Db Transaction=====\n");
             connObj = dataSource.getConnection();
 
             ps = connObj.prepareStatement("SELECT * FROM ultimatediscord WHERE discordid = ?");
@@ -339,24 +247,28 @@ public class MySQL {
         } catch(Exception sqlException) {
             sqlException.printStackTrace();
         } finally {
-            try {
-                // Closing ResultSet Object
-                if(rs != null) {
-                    rs.close();
-                }
-                // Closing PreparedStatement Object
-                if(ps != null) {
-                    ps.close();
-                }
-                // Closing Connection Object
-                if(connObj != null) {
-                    connObj.close();
-                }
-            } catch(Exception sqlException) {
-                sqlException.printStackTrace();
-            }
+            cleanUp(connObj, ps, rs);
         }
         return returnVal;
+    }
+
+    private static void cleanUp(Connection connObj, PreparedStatement ps, ResultSet rs) {
+        try {
+            // Closing ResultSet Object
+            if(rs != null) {
+                rs.close();
+            }
+            // Closing PreparedStatement Object
+            if(ps != null) {
+                ps.close();
+            }
+            // Closing Connection Object
+            if(connObj != null) {
+                connObj.close();
+            }
+        } catch(Exception sqlException) {
+            sqlException.printStackTrace();
+        }
     }
 
     public static void unlinkUser(Player player)
@@ -368,7 +280,6 @@ public class MySQL {
             DataSource dataSource = setUpPool();
 
             // Performing Database Operation!
-            System.out.println("\n=====Making A New Connection Object For Db Transaction=====\n");
             connObj = dataSource.getConnection();
 
             ps = connObj.prepareStatement("UPDATE ultimatediscord SET `discordid`='null', `previouslyLinked`=1 WHERE uuid=?");

@@ -15,21 +15,23 @@ import java.io.File;
 
 public class Main extends JavaPlugin {
 
-
     public static JDA jda;
     public static Main instance;
     private static Permission perms;
-
 
     @Override
     public void onEnable() {
         instance = this;
         loadConfig();
         startBot();
-        MySQL.connect();
+        try {
+            MySQL.setUpPool();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         MySQL.createDatabase();
         setupPermissions();
-        this.getCommand("discord").setExecutor(new CommandDiscord());
+        this.getCommand("discord").setExecutor(new CommandDiscord(this));
     }
 
     private void setupPermissions() {
@@ -42,8 +44,9 @@ public class Main extends JavaPlugin {
 
         try
         {
+            // Setup the bot
             JDA jda = JDABuilder.createDefault(cfg.getString("Discord.token")) // The token of the account that is logging in.
-                    .addEventListeners(new MessageListener())   // An instance of a class that will handle events.
+                    .addEventListeners(new MessageListener(this))   // An instance of a class that will handle events.
                     .setAutoReconnect(true)
                     .setActivity(Activity.watching(cfg.getString("Discord.game")))
                     .build();
@@ -59,7 +62,6 @@ public class Main extends JavaPlugin {
 
     @Override
     public void onDisable() {
-        MySQL.disconnect();
     }
 
     private void loadConfig() {
