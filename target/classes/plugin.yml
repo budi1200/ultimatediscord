@@ -1,9 +1,0 @@
-name: UltimateDiscord
-version: 1.2
-author: Schlaubi
-main: net.schlaubi.ultimatediscord.spigot.Main
-depend: [Vault]
-api-version: 1.16
-commands:
-  discord:
-    description: Discord command
