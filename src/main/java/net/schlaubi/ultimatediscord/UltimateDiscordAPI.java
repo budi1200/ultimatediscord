@@ -7,16 +7,8 @@ import org.bukkit.entity.Player;
 
 public class UltimateDiscordAPI {
 
-    public static boolean isVerified(String discordid){
-        return MySQL.isUserLinked(discordid);
-    }
-
     public static boolean isVerified(Player player){
         return MySQL.isUserLinked(player);
-    }
-
-    public static boolean isVerified(ProxiedPlayer proxiedPlayer){
-        return MySQL.isUserLinked(proxiedPlayer);
     }
 
     public static String getUserName(String discordid){
@@ -25,10 +17,6 @@ public class UltimateDiscordAPI {
 
     public static String getDiscordId(Player player){
         return MySQL.getValue(player, "discordid");
-    }
-
-    public static String getDiscordId(ProxiedPlayer proxiedPlayer){
-        return MySQL.getValue(proxiedPlayer, "discordid");
     }
 
     public static JDA getSpigotJDA(){
