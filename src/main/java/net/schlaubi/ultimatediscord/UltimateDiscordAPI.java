@@ -1,7 +1,6 @@
 package net.schlaubi.ultimatediscord;
 
 import net.dv8tion.jda.api.JDA;
-import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.schlaubi.ultimatediscord.util.MySQL;
 import org.bukkit.entity.Player;
 

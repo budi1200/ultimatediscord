@@ -1,5 +1,5 @@
 name: UltimateDiscord
-version: 1.2
+version: 2.0
 author: Schlaubi
 main: net.schlaubi.ultimatediscord.spigot.Main
 depend: [Vault]
